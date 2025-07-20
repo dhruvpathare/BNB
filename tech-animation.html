@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Universe</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, #0f2027, #203a43, #2c5364);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      position: relative;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .heading {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      top: 15%;
+      animation: fadeIn 2s ease forwards;
+    }
+
+    h1 {
+      font-size: 3em;
+      text-shadow: 0 0 15px #00d2ff, 0 0 30px #00d2ff;
+    }
+
+    p {
+      font-size: 1.3em;
+      color: #cfd8dc;
+      margin-top: 20px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Star shine animation */
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: twinkle 2s infinite ease-in-out;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="heading">
+    <h1>🌌 Welcome to the Tech Universe 🌌</h1>
+    <p>Where imagination and interactivity meet ✨</p>
+  </div>
+
+  <canvas id="particleCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+
+    const particles = [];
+    const stars = [];
+    const glowColor = '#00ffff';
+
+    const mouse = {
+      x: null,
+      y: null,
+      radius: 100
+    };
+
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.x;
+      mouse.y = e.y;
+    });
+
+    class Particle {
+      constructor(x, y, dx, dy, size) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.baseSize = size;
+        this.size = size;
+        this.glowTime = 0;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.glowTime > 0 ? glowColor : 'white';
+        ctx.shadowBlur = this.glowTime > 0 ? 15 : 5;
+        ctx.shadowColor = glowColor;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      update() {
+        this.x += this.dx;
+        this.y += this.dy;
+
+        // bounce
+        if (this.x < 0 || this.x > canvas.width) this.dx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.dy *= -1;
+
+        // interaction
+        const dist = Math.hypot(mouse.x - this.x, mouse.y - this.y);
+        if (dist < mouse.radius) {
+          this.x -= (mouse.x - this.x) * 0.05;
+          this.y -= (mouse.y - this.y) * 0.05;
+          this.glowTime = 10; // frames to glow
+        }
+
+        if (this.glowTime > 0) this.glowTime--;
+
+        this.draw();
+      }
+    }
+
+    function initParticles() {
+      for (let i = 0; i < 300; i++) {
+        const size = Math.random() * 1.5 + 1;
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        const dx = (Math.random() - 0.5) * 0.7;
+        const dy = (Math.random() - 0.5) * 0.7;
+        particles.push(new Particle(x, y, dx, dy, size));
+      }
+    }
+
+    function initStars() {
+      for (let i = 0; i < 80; i++) {
+        const star = document.createElement('div');
+        star.classList.add('star');
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.animationDuration = `${Math.random() * 2 + 1}s`;
+        document.body.appendChild(star);
+        stars.push(star);
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => p.update());
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+    });
+
+    initParticles();
+    initStars();
+    animate();
+  </script>
+</body>
+</html>
